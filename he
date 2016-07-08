@@ -2,6 +2,8 @@
 
 
 from os.path import expanduser
+import sys
+import subprocess
 
 def set_something(something):
     HOME = expanduser("~")
@@ -17,3 +19,21 @@ def set_something(something):
             overallSettings += ':'.join(settings)
     with open(HOME + "/.he_conf", "w") as conf:
         conf.write(overallSettings)
+
+def edit():
+    HOME = expanduser("~")
+    overallSettings=dict()
+    with open(HOME + "/.he_conf","r") as conf:
+        for line in conf:
+            settings = line.split(":")
+            settings[1]=settings[1][:-1]
+            overallSettings[settings[0]] = settings[1]
+    for key in overallSettings.keys():
+        if key=="EDITOR":
+            if overallSettings[key]=="None":
+                print("Please set your editor first!")
+            else:
+                if overallSettings["TEMPLATE"] != "None":
+                    subprocess.call(["cp",overallSettings["TEMPLATE"],sys.argv[1]])
+                subprocess.call([overallSettings["EDITOR"],sys.argv[1]])
+
