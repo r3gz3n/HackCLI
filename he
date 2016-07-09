@@ -2,14 +2,13 @@
 
 
 from os.path import expanduser
-import sys
-import subprocess
+import sys, json, subprocess
 
+HOME = expanduser("~")
 
 def set_something(something):
-    HOME = expanduser("~")
     capitalizeSomething = something[:1] + something[1:].lower()
-    path = input("Enter the path of the " + capitalizeSomething + ": ")
+    path = input("Enter " + capitalizeSomething + ": ")
     overallSettings = ""
     with open(HOME + "/.he_conf", "r") as conf:
         for line in conf:
@@ -23,7 +22,6 @@ def set_something(something):
 
 
 def edit():
-    HOME = expanduser("~")
     overallSettings=dict()
     with open(HOME + "/.he_conf","r") as conf:
         for line in conf:
@@ -40,7 +38,6 @@ def edit():
                 subprocess.call([overallSettings["EDITOR"],sys.argv[1]])
 
 def run():
-    HOME = expanduser("~")
     CLIENT_ID = ""
     CLIENT_SECRET = ""
     LANG = ""
@@ -112,10 +109,111 @@ def run():
             print("Problem name galat hai!")
     else:
         print("Contest name sahi daal bc!")
+        
+
+def whatTypeOfContestIsThis(contestName):
+    if 'Hiring' in contestName:
+        return "Hiring"
+    elif 'Easy' in contestName or 'Clash' in contestName or 'Circuits' in contestName:
+        return "Real Contest"
+    else:
+        return "Hackathon?"
+
+
+def view():
+    CLIENT_ID = ""
+    CLIENT_SECRET = ""
+    BROWSER = ""
+
+    with open(HOME + '/.he_conf', "r") as conf:
+        for line in conf:
+            settings = line.split(':')
+            settings[1]=settings[1][:-1]
+            if settings[0] == "CLIENT_ID":
+                CLIENT_ID = settings[1]
+            if settings[0] == "CLIENT_SECRET":
+                CLIENT_SECRET = settings[1]
+            if settings[0] == "BROWSER":
+                BROWSER = settings[1]
+
+    data = {
+        'client_id' : CLIENT_ID,
+        'client_secret' : CLIENT_SECRET
+    }
+
+    if len(sys.argv) == 2:
+        response = post('https://api.hackerearth.com/hackathon/v1/live-events/', data=data).json()
+        live_events = response['live_events']
+        if sys.argv[1] == 'live-contests':
+            for events in live_events:
+                print(events['title'])
+        else:
+            event_exists = False
+            eventUUID = ""
+            for events in live_events:
+                if events['title'] == sys.argv[1]:
+                    eventUUID = events['uuid']
+                    event_exists = True
+                    break
+            if event_exists == True:
+                response = post('https://api.hackerearth.com/hackathon/v1/' + eventUUID + '/problems/', data=data).json()
+                problems = response['problems']
+                for problem in problems:
+                    print(problem['title'])
+            else:
+                print("You are pathetic!! Can't even type a contest name correctly -_-")
+    elif len(sys.argv) == 3:
+        response = post('https://api.hackerearth.com/hackathon/v1/live-events/', data=data).json()
+        live_events = response['live_events']
+        if sys.argv[1] == 'live-contests':
+            for events in live_events:
+                print(events['title'])
+        else:
+            event_exists = False
+            eventUUID = ""
+            for events in live_events:
+                if events['title'] == sys.argv[1]:
+                    eventUUID = events['uuid']
+                    event_exists = True
+                    break
+            if event_exists == True:
+                response = post('https://api.hackerearth.com/hackathon/v1/' + eventUUID + '/problems/', data=data).json()
+                problems = response['problems']
+                problem_exists = False
+                problem_hash = ''
+                problem_type = ''
+                for problem in problems:
+                    if problem['title'] == sys.argv[2]:
+                        problem_exists = True
+                        problem_hash = problem['hash']
+                        problem_type = problem['type']
+                        break
+                if problem_exists == True:
+                    contest_name = sys.argv[1]
+                    event_type = whatTypeOfContestIsThis(contest_name)
+                    contest_name = contest_name.lower().replace(' ', '-')
+                    URL = 'https://www.hackerearth.com/'
+                    if event_type == 'Hiring':
+                        contest_name += '-1'
+                        URL += contest_name + "/problems/" + problem_hash + '/'
+                        command = [BROWSER, URL]
+                        subprocess.Popen(command)
+                    else:
+                        URL += contest_name + "/" + problem_type + "/" + problem_hash + '/'
+                        command = [BROWSER, URL]
+                        subprocess.Popen(command)
+
+                else:
+                    print("Problem doesn't exist!!")
+
+            else:
+                print("You are pathetic!! Can't even type a contest name correctly -_-")
+    else:
+        print("Invalid number of arguments, Fucker!")        
+        
+
 
 def show():
-    print("\n")
-    HOME = expanduser("~")
     with open(HOME + "/.he_conf","r") as conf:
         for line in conf:
             p = line.split(':')
