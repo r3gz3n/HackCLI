@@ -1,10 +1,10 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 
-from os.path import expanduser
-import sys, json, subprocess
+import sys, subprocess, time, os
+from requests import post
 
-HOME = expanduser("~")
+HOME = os.path.expanduser("~")
 
 def set_something(something):
     capitalizeSomething = something[:1] + something[1:].lower()
@@ -28,16 +28,11 @@ def edit():
             settings = line.split(":")
             settings[1]=settings[1][:-1]
             overallSettings[settings[0]] = settings[1]
-    for key in overallSettings.keys():
-        if key=="EDITOR":
-            if overallSettings[key]=="None":
-                print("Please set your editor first!")
-            else:
-                if overallSettings["TEMPLATE"] != "None":
-                    subprocess.call(["cp",overallSettings["TEMPLATE"],sys.argv[1]])
-                subprocess.call([overallSettings["EDITOR"],sys.argv[1]])
+    if os.path.isfile(overallSettings['FILEPATH'] + sys.argv[2]) == False:
+        subprocess.call(["cp",overallSettings["TEMPLATE"],sys.argv[2]])
+    subprocess.call([overallSettings["EDITOR"],sys.argv[2]])
 
-def run():
+def submit():
     CLIENT_ID = ""
     CLIENT_SECRET = ""
     LANG = ""
@@ -55,7 +50,10 @@ def run():
                 LANG = settings[1]
             if settings[0]=="FILEPATH":
                 filepath = settings[1]
-    fileName = filepath + sys.argv[3]
+    if len(sys.argv) != 5:
+        print('Invalid number of arguments!!')
+        exit(1)
+    fileName = filepath + sys.argv[4]
     with open(fileName,"r") as conf:
         SOURCE = conf.read()
 
@@ -70,7 +68,7 @@ def run():
     live_events = response['live_events']
     isContestNameCorrect = False
     for events in live_events:
-        if events['title'] == sys.argv[1]:
+        if events['title'] == sys.argv[2]:
             isContestNameCorrect = True
             contestUUID = events['uuid']
     if isContestNameCorrect == True:
@@ -80,7 +78,7 @@ def run():
         problemHash = ""
         problemType = ""
         for problem in problems:
-            if problem['title'] == sys.argv[2]:
+            if problem['title'] == sys.argv[3]:
                 problem_exists = True
                 problemHash = problem['hash']
                 problemType = problem['type']
@@ -96,8 +94,7 @@ def run():
                 print("Fetching results...")
                 time.sleep(5)
                 submission_id = response['submission']['id']
-                response = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/algorithm/" + problemHash + "/submission/"+str(submission_id)+"/" , data=data).json()
-                r=response
+                r = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/algorithm/" + problemHash + "/submission/"+str(submission_id)+"/" , data=data).json()
                 print("Submission id -",r['submission']['id'])
                 print("Result -",r['submission']['result'])
                 print("Memory -",r['submission']['memory'])
@@ -108,8 +105,8 @@ def run():
         else:
             print("Problem name galat hai!")
     else:
-        print("Contest name sahi daal bc!")
-        
+        print("Contest name sahi daal!")
+
 
 def whatTypeOfContestIsThis(contestName):
     if 'Hiring' in contestName:
@@ -141,28 +138,34 @@ def view():
         'client_secret' : CLIENT_SECRET
     }
 
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 3:
         response = post('https://api.hackerearth.com/hackathon/v1/live-events/', data=data).json()
         live_events = response['live_events']
-        if sys.argv[1] == 'live-contests':
+        if sys.argv[2] == 'live-contests':
+            print("List of contests")
+            x = 1
             for events in live_events:
-                print(events['title'])
+                print(x, events['title'])
+                x += 1
         else:
             event_exists = False
             eventUUID = ""
             for events in live_events:
-                if events['title'] == sys.argv[1]:
+                if events['title'] == sys.argv[2]:
                     eventUUID = events['uuid']
                     event_exists = True
                     break
             if event_exists == True:
                 response = post('https://api.hackerearth.com/hackathon/v1/' + eventUUID + '/problems/', data=data).json()
                 problems = response['problems']
+                print("List of problems of " + sys.argv[2])
+                x = 1
                 for problem in problems:
-                    print(problem['title'])
+                    print(x, problem['title'])
+                    x += 1
             else:
                 print("You are pathetic!! Can't even type a contest name correctly -_-")
-    elif len(sys.argv) == 3:
+    elif len(sys.argv) == 4:
         response = post('https://api.hackerearth.com/hackathon/v1/live-events/', data=data).json()
         live_events = response['live_events']
         if sys.argv[1] == 'live-contests':
@@ -172,7 +175,7 @@ def view():
             event_exists = False
             eventUUID = ""
             for events in live_events:
-                if events['title'] == sys.argv[1]:
+                if events['title'] == sys.argv[2]:
                     eventUUID = events['uuid']
                     event_exists = True
                     break
@@ -183,13 +186,13 @@ def view():
                 problem_hash = ''
                 problem_type = ''
                 for problem in problems:
-                    if problem['title'] == sys.argv[2]:
+                    if problem['title'] == sys.argv[3]:
                         problem_exists = True
                         problem_hash = problem['hash']
                         problem_type = problem['type']
                         break
                 if problem_exists == True:
-                    contest_name = sys.argv[1]
+                    contest_name = sys.argv[2]
                     event_type = whatTypeOfContestIsThis(contest_name)
                     contest_name = contest_name.lower().replace(' ', '-')
                     URL = 'https://www.hackerearth.com/'
@@ -209,8 +212,8 @@ def view():
             else:
                 print("You are pathetic!! Can't even type a contest name correctly -_-")
     else:
-        print("Invalid number of arguments, Fucker!")        
-        
+        print("Invalid number of arguments, Fucker!")
+
 
 
 def show():
@@ -223,4 +226,32 @@ def show():
 
 
 
-
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+        if command == 'set_editor':
+            set_something('EDITOR')
+        elif command == 'set_browser':
+            set_something('BROWSER')
+        elif command == 'set_template':
+            set_something('TEMPLATE')
+        elif command == 'set_filepath':
+            set_something('FILEPATH')
+        elif command == 'set_lang':
+            set_something('LANG')
+        elif command == 'set_clientid':
+            set_something('CLIENT_ID')
+        elif command == 'set_clientsecret':
+            set_something('CLIENT_SECRET')
+        elif command == 'show':
+            show()
+        elif command == 'edit':
+            edit()
+        elif command == 'view':
+            view()
+        elif command == 'submit':
+            submit()
+        else:
+            print('Wrong Command!!')
+    else:
+        print("Invalid Number of Arguments!!")
