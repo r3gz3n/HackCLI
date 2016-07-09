@@ -81,12 +81,14 @@ def run():
         problems = response['problems']
         problem_exists = False
         problemHash = ""
+        problemType = ""
         for problem in problems:
             if problem['title'] == sys.argv[2]:
                 problem_exists = True
                 problemHash = problem['hash']
+                problemType = problem['type']
         if problem_exists == True:
-            response = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/algorithm/" + problemHash + "/run/" , data=data).json()
+            response = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/" + problemType + "/" + problemHash + "/run/" , data=data).json()
             if response['mcode'] == "SUCCESS":
                 print("Submitting...")
                 time.sleep(5)
