@@ -30,7 +30,7 @@ def edit():
             overallSettings[settings[0]] = settings[1]
     if os.path.isfile(overallSettings['FILEPATH'] + sys.argv[2]) == False:
         subprocess.call(["cp",overallSettings["TEMPLATE"],sys.argv[2]])
-    subprocess.call([overallSettings["EDITOR"],sys.argv[2]])
+    subprocess.call([overallSettings["EDITOR"],overallSettings['FILEPATH'] + sys.argv[2]])
 
 def submit():
     CLIENT_ID = ""
@@ -51,7 +51,7 @@ def submit():
             if settings[0]=="FILEPATH":
                 filepath = settings[1]
     if len(sys.argv) != 5:
-        print('Invalid number of arguments!!')
+        print('Invalid number of arguments: Submit take 3 arguments')
         exit(1)
     fileName = filepath + sys.argv[4]
     with open(fileName,"r") as conf:
@@ -86,13 +86,13 @@ def submit():
             response = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/" + problemType + "/" + problemHash + "/run/" , data=data).json()
             if response['mcode'] == "SUCCESS":
                 print("Submitting...")
-                time.sleep(5)
+                time.sleep(3)
                 print("Compiling...")
-                time.sleep(5)
+                time.sleep(3)
                 print("Running...")
-                time.sleep(5)
+                time.sleep(3)
                 print("Fetching results...")
-                time.sleep(5)
+                time.sleep(3)
                 submission_id = response['submission']['id']
                 r = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/algorithm/" + problemHash + "/submission/"+str(submission_id)+"/" , data=data).json()
                 print("Submission id -",r['submission']['id'])
@@ -101,11 +101,11 @@ def submit():
                 print("Time -",r['submission']['time'])
                 print("Score -",r['submission']['score'])
             else:
-                print("Kuch galat hai bhai!")
+                print("Error while submitting! Please try later!")
         else:
-            print("Problem name galat hai!")
+            print("Problem doesn't exist in " + sys.argv[2])
     else:
-        print("Contest name sahi daal!")
+        print("Please enter correct contest name")
 
 
 def whatTypeOfContestIsThis(contestName):
@@ -114,7 +114,7 @@ def whatTypeOfContestIsThis(contestName):
     elif 'Easy' in contestName or 'Clash' in contestName or 'Circuits' in contestName:
         return "Real Contest"
     else:
-        return "Hackathon?"
+        return "Hackathon"
 
 
 def view():
@@ -164,7 +164,7 @@ def view():
                     print(x, problem['title'])
                     x += 1
             else:
-                print("You are pathetic!! Can't even type a contest name correctly -_-")
+                print("Please enter correct contest name")
     elif len(sys.argv) == 4:
         response = post('https://api.hackerearth.com/hackathon/v1/live-events/', data=data).json()
         live_events = response['live_events']
@@ -207,12 +207,13 @@ def view():
                         subprocess.Popen(command)
 
                 else:
-                    print("Problem doesn't exist!!")
+                    print("Problem doesn't exist in", sys.argv[2])
 
             else:
-                print("You are pathetic!! Can't even type a contest name correctly -_-")
+                print("Please enter correct contest name")
     else:
-        print("Invalid number of arguments, Fucker!")
+        print("Invalid number of arguments:")
+        print("he view live-contests/<Contest Name> [<Problem Name>]")
 
 
 
@@ -225,10 +226,18 @@ def show():
             print(p[0]+ ":" + p[1] + "\n")
 
 
+def help1():
+    print("usage:")
+    print("he show : To display all the settings")
+    print("he view : To view live events / live contest problems and also to open a particular problem in browser")
+    print("he edit : To edit a particular file")
+    print("he submit : To submit solution to a particular problem")
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         command = sys.argv[1]
+        if command == "help":
+            help1()
         if command == 'set_editor':
             set_something('EDITOR')
         elif command == 'set_browser':
@@ -254,4 +263,4 @@ if __name__ == '__main__':
         else:
             print('Wrong Command!!')
     else:
-        print("Invalid Number of Arguments!!")
+        help1()
