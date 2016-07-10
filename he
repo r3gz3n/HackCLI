@@ -6,20 +6,6 @@ from requests import post
 
 HOME = os.path.expanduser("~")
 
-def set_something(something):
-    capitalizeSomething = something[:1] + something[1:].lower()
-    path = input("Enter " + capitalizeSomething + ": ")
-    overallSettings = ""
-    with open(HOME + "/.he_conf", "r") as conf:
-        for line in conf:
-            settings = line.split(':')
-            if settings[0] == something:
-                settings[1] = path + '\n'
-
-            overallSettings += ':'.join(settings)
-    with open(HOME + "/.he_conf", "w") as conf:
-        conf.write(overallSettings)
-
 
 def edit():
     overallSettings=dict()
@@ -233,25 +219,39 @@ def help1():
     print("he edit : To edit a particular file")
     print("he submit : To submit solution to a particular problem")
 
+def settings():
+    overallSettings = ''
+    if len(sys.argv) == 2:
+        something = ''
+        with open(HOME + "/.he_conf", "r") as conf:
+            for line in conf:
+                setting = line.split(":")
+                if something == '':
+                    capitalizeSomething = setting[0][:1] + setting[0][1:].lower()
+                    path = input("Enter " + capitalizeSomething + ": ")
+                    setting[1] = path + '\n'
+                overallSettings += ':'.join(setting)
+    else:
+        something = sys.argv[2]
+        with open(HOME + "/.he_conf", "r") as conf:
+            for line in conf:
+                setting = line.split(":")
+                if something == setting[0].lower():
+                    capitalizeSomething = setting[0][:1] + setting[0][1:].lower()
+                    path = input("Enter " + capitalizeSomething + ": ")
+                    setting[1] = path + '\n'
+                overallSettings += ':'.join(setting)
+    with open(HOME + "/.he_conf", "w") as conf:
+        conf.write(overallSettings)
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         command = sys.argv[1]
         if command == "help":
             help1()
-        if command == 'set_editor':
-            set_something('EDITOR')
-        elif command == 'set_browser':
-            set_something('BROWSER')
-        elif command == 'set_template':
-            set_something('TEMPLATE')
-        elif command == 'set_filepath':
-            set_something('FILEPATH')
-        elif command == 'set_lang':
-            set_something('LANG')
-        elif command == 'set_clientid':
-            set_something('CLIENT_ID')
-        elif command == 'set_clientsecret':
-            set_something('CLIENT_SECRET')
+        elif command == 'settings':
+            settings()
         elif command == 'show':
             show()
         elif command == 'edit':
