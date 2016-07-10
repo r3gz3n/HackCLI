@@ -8,6 +8,10 @@ HOME = os.path.expanduser("~")
 
 
 def edit():
+    if len(sys.argv) != 5:
+        print('Invalid number of arguments!')
+        print('Usage: he edit <Contest Name> <Problem Name> <File Name>')
+        exit(1)
     overallSettings=dict()
     with open(HOME + "/.he_conf","r") as conf:
         for line in conf:
@@ -37,7 +41,8 @@ def submit():
             if settings[0]=="FILEPATH":
                 filepath = settings[1]
     if len(sys.argv) != 5:
-        print('Invalid number of arguments: Submit take 3 arguments')
+        print('Invalid number of arguments!')
+        print('Usage: he submit <Contest Name> <Problem Name> <File Name>')
         exit(1)
     fileName = filepath + sys.argv[4]
     with open(fileName,"r") as conf:
@@ -198,26 +203,33 @@ def view():
             else:
                 print("Please enter correct contest name")
     else:
-        print("Invalid number of arguments:")
-        print("he view live-contests/<Contest Name> [<Problem Name>]")
+        print("Invalid number of arguments!")
+        print("Usage: he view live-contests/<Contest Name> [<Problem Name>]")
 
 
 
 def show():
-    with open(HOME + "/.he_conf","r") as conf:
-        for line in conf:
-            p = line.split(':')
-            p[0] = p[0][:1] + p[0][1:].lower()
-            p[1] = p[1][:-1]
-            print(p[0]+ ":" + p[1] + "\n")
+    if len(sys.argv) > 2:
+        print("Invalid number of arguments!")
+        print("Usage: he show")
+        exit(1)
+    else:
+        with open(HOME + "/.he_conf","r") as conf:
+            for line in conf:
+                p = line.split(':')
+                p[0] = p[0][:1] + p[0][1:].lower()
+                p[1] = p[1][:-1]
+                print(p[0]+ ":" + p[1] + "\n")
 
 
 def help1():
-    print("usage:")
-    print("he show : To display all the settings")
-    print("he view : To view live events / live contest problems and also to open a particular problem in browser")
-    print("he edit : To edit a particular file")
-    print("he submit : To submit solution to a particular problem")
+    print("Usage: he <Command>")
+    print("Possible commands are:")
+    print("he show:                                               To display all the settings")
+    print("he view live-contests / <Contest Name> [<Problem Name>]: To view live events / live contest problems and also to open a particular problem in browser")
+    print("he edit <Contest Name> <Problem Name> <File Name>:     To edit a particular file")
+    print("he submit <Contest Name> <Problem Name> <File Name>:   To submit solution to a particular problem")
+    print("he settings [option]:                                  To edit settings")
 
 def settings():
     overallSettings = ''
