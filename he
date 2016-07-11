@@ -21,8 +21,8 @@ def edit():
             settings[1]=settings[1][:-1]
             overallSettings[settings[0]] = settings[1]
     if isfile(overallSettings['FILEPATH'] + sys.argv[2]) == False:
-        subprocess.call(["cp",overallSettings["TEMPLATE"],sys.argv[2]])
-    subprocess.call([overallSettings["EDITOR"],overallSettings['FILEPATH'] + sys.argv[2]])
+        subprocess.call(["cp", overallSettings["TEMPLATE"], overallSettings["FILEPATH"] + sys.argv[2]])
+    subprocess.call([overallSettings["EDITOR"], overallSettings['FILEPATH'] + sys.argv[2]])
 
 def submit():
     CLIENT_ID = ""
