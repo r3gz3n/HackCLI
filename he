@@ -138,7 +138,7 @@ def view():
             print("List of contests")
             x = 1
             for events in live_events:
-                print(x, events['title'])
+                print(str(x) + ".", events['title'])
                 x += 1
         else:
             event_exists = False
@@ -154,7 +154,7 @@ def view():
                 print("List of problems of " + sys.argv[2])
                 x = 1
                 for problem in problems:
-                    print(x, problem['title'])
+                    print(str(x) + ".", problem['title'])
                     x += 1
             else:
                 print("Please enter correct contest name")
