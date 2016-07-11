@@ -10,9 +10,9 @@ HOME = expanduser("~")
 
 
 def edit():
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 3:
         print('Invalid number of arguments!')
-        print('Usage: he edit <Contest Name> <Problem Name> <File Name>')
+        print('Usage: he edit <File Name>')
         exit(1)
     overallSettings=dict()
     with open(HOME + "/.he_conf","r") as conf:
@@ -229,7 +229,7 @@ def help1():
     print("Possible commands are:")
     print("1. he show:                                                 To display all the settings")
     print("2. he view live-contests / <Contest Name> [<Problem Name>]: To view live events / live contest problems and also to open a particular problem in browser")
-    print("3. he edit <Contest Name> <Problem Name> <File Name>:       To edit a particular file")
+    print("3. he edit <File Name>:                                     To edit a particular file")
     print("4. he submit <Contest Name> <Problem Name> <File Name>:     To submit solution to a particular problem")
     print("5. he settings [option]:                                    To edit settings")
 
