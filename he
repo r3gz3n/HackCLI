@@ -1,10 +1,12 @@
 #! /usr/bin/env python3
 
 
-import sys, subprocess, time, os
+import sys, subprocess
+from time import sleep
 from requests import post
+from os.path import expanduser, isfile
 
-HOME = os.path.expanduser("~")
+HOME = expanduser("~")
 
 
 def edit():
@@ -18,7 +20,7 @@ def edit():
             settings = line.split(":")
             settings[1]=settings[1][:-1]
             overallSettings[settings[0]] = settings[1]
-    if os.path.isfile(overallSettings['FILEPATH'] + sys.argv[2]) == False:
+    if isfile(overallSettings['FILEPATH'] + sys.argv[2]) == False:
         subprocess.call(["cp",overallSettings["TEMPLATE"],sys.argv[2]])
     subprocess.call([overallSettings["EDITOR"],overallSettings['FILEPATH'] + sys.argv[2]])
 
@@ -77,13 +79,13 @@ def submit():
             response = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/" + problemType + "/" + problemHash + "/run/" , data=data).json()
             if response['mcode'] == "SUCCESS":
                 print("Submitting...")
-                time.sleep(3)
+                sleep(3)
                 print("Compiling...")
-                time.sleep(3)
+                sleep(3)
                 print("Running...")
-                time.sleep(3)
+                sleep(3)
                 print("Fetching results...")
-                time.sleep(3)
+                sleep(3)
                 submission_id = response['submission']['id']
                 r = post("https://api.hackerearth.com/hackathon/v1/" + contestUUID + "/problem/algorithm/" + problemHash + "/submission/"+str(submission_id)+"/" , data=data).json()
                 print("Submission id -",r['submission']['id'])
@@ -231,20 +233,29 @@ def help1():
     print("he submit <Contest Name> <Problem Name> <File Name>:   To submit solution to a particular problem")
     print("he settings [option]:                                  To edit settings")
 
-def settings():
+def validator():
+
+    with open(HOME + '/.he_conf', 'r') as conf:
+        for line in conf:
+            setting = line.split(':')
+            setting[1] = setting[1][:-1]
+            if setting[1] == 'None':
+                return setting[0]
+    return 'valid'
+
+def settings(something):
     overallSettings = ''
-    if len(sys.argv) == 2:
-        something = ''
+    if something == '':
         with open(HOME + "/.he_conf", "r") as conf:
             for line in conf:
                 setting = line.split(":")
                 if something == '':
                     capitalizeSomething = setting[0][:1] + setting[0][1:].lower()
                     path = input("Enter " + capitalizeSomething + ": ")
-                    setting[1] = path + '\n'
+                    if path != '':
+                        setting[1] = path + '\n'
                 overallSettings += ':'.join(setting)
     else:
-        something = sys.argv[2]
         with open(HOME + "/.he_conf", "r") as conf:
             for line in conf:
                 setting = line.split(":")
@@ -256,14 +267,21 @@ def settings():
     with open(HOME + "/.he_conf", "w") as conf:
         conf.write(overallSettings)
 
-
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         command = sys.argv[1]
         if command == "help":
             help1()
         elif command == 'settings':
-            settings()
+            if len(sys.argv) == 3:
+                something = sys.argv[2]
+            else:
+                something = ''
+            settings(something)
+            something = validator().lower()
+            while something != 'valid':
+                settings(something)
+                something = validator().lower()
         elif command == 'show':
             show()
         elif command == 'edit':
