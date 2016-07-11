@@ -5,7 +5,9 @@ from subprocess import call
 HOME = expanduser("~")
 
 def install():
-    command = ['sudo', 'cp', './he', '/usr/local/bin/he']
+    command = ['sudo', 'chmod', '+x', 'he']
+    call(command)
+    command = ['sudo', 'cp', 'he', '/usr/local/bin/he']
     call(command)
     command = ['touch', HOME + '/.he_conf']
     call(command)
